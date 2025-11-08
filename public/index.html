@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>POST-HUMAN KOMBAT // LEADERBOARD</title>
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="connection-status disconnected" id="connectionStatus">DISCONNECTED</div>
+  <div class="fatality-alert" id="fatalityAlert"></div>
+
+  <div class="container">
+    <header>
+      <h1>POST-HUMAN KOMBAT</h1>
+      <div class="subtitle">LEADERBOARD v2.0</div>
+    </header>
+
+    <div class="leaderboard">
+      <div class="leaderboard-header">
+        <div>RANK</div><div>FIGHTER</div><div>KILLS</div><div>DEATHS</div><div>WEAPON</div>
+      </div>
+      <div id="leaderboardBody"></div>
+    </div>
+
+    <div class="fighter-selection">
+      <div id="playerInfo" class="player-info hidden">
+        <div class="status">REGISTERED AS</div>
+        <div class="character-display" id="registeredCharacter"></div>
+        <div class="status status--alert">READY TO FIGHT!</div>
+      </div>
+
+      <div id="tournamentStatus" class="player-info player-info--tournament hidden">
+        <div class="status status--alert status--xl">TOURNAMENT READY</div>
+        <div class="status status--ok" id="matchupText"></div>
+        <div class="status status--info">BEGIN YOUR BATTLE!</div>
+      </div>
+
+      <div id="waitingStatus" class="player-info player-info--waiting hidden">
+        <div class="status status--warn status--lg">WAITING FOR OPPONENT</div>
+        <div class="status status--info">1 / 2 FIGHTERS REGISTERED</div>
+      </div>
+
+      <h2>SELECT YOUR FIGHTER</h2>
+
+      <div class="character-grid" id="characterGrid">
+        <div class="character-card" data-character="BLADE-FORGED" data-weapon="Plasma Sword">
+          <div class="character-name">BLADE-FORGED</div>
+          <div class="character-weapon">PLASMA SWORD</div>
+          <div class="character-desc">Wields a molecular-edge blade that cuts through matter at the atomic level.</div>
+        </div>
+        <div class="character-card" data-character="PHOTON-STRIKER" data-weapon="Energy Blaster">
+          <div class="character-name">PHOTON-STRIKER</div>
+          <div class="character-weapon">ENERGY BLASTER</div>
+          <div class="character-desc">Channels pure energy through quantum-charged cannons.</div>
+        </div>
+        <div class="character-card" data-character="ICE-AGED" data-weapon="Ice Ball">
+          <div class="character-name">ICE-AGED</div>
+          <div class="character-weapon">ICE BALL</div>
+          <div class="character-desc">Manifests frozen projectiles that shatter reality itself.</div>
+        </div>
+        <div class="character-card" data-character="VOID-CALLER" data-weapon="Summoning Power">
+          <div class="character-name">VOID-CALLER</div>
+          <div class="character-weapon">SUMMONING POWER</div>
+          <div class="character-desc">Summons entities from parallel dimensions to overwhelm opponents.</div>
+        </div>
+      </div>
+
+      <button id="registerBtn" onclick="registerFighter()" disabled>SELECT YOUR FIGHTER TO BEGIN</button>
+      <button id="resetBtn" class="btn-reset hidden" onclick="resetTournament()">RESET TOURNAMENT</button>
+    </div>
+  </div>
+
+  <section id="arena">
+    <h2 class="arena-title">ARENA</h2>
+    <div id="game"></div>
+    <p class="arena-help">
+      Controls: <strong>Player 1</strong> — Left/Right Arrows to move, <strong>Space</strong> to shoot ·
+      <strong>Player 2</strong> — A/D to move
+    </p>
+  </section>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.10.0/lib/p5.min.js"></script>
+  <script src="https://p5play.org/v3/planck.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5play@3.23.1/lib/p5play.js"></script>
+
+  <script>
+    const socket = io();
+
+    function updateConnectionStatus(connected) {
+      const status = document.getElementById('connectionStatus');
+      if (connected) {
+        status.textContent = 'CONNECTED';
+        status.className = 'connection-status connected';
+      } else {
+        status.textContent = 'DISCONNECTED';
+        status.className = 'connection-status disconnected';
+      }
+    }
+    socket.on('connect', () => updateConnectionStatus(true));
+    socket.on('disconnect', () => updateConnectionStatus(false));
+
+    socket.on('leaderboard-update', renderLeaderboard);
+
+    function renderLeaderboard(leaderboard) {
+      const tbody = document.getElementById('leaderboardBody');
+      tbody.innerHTML = '';
+      if (!leaderboard || leaderboard.length === 0) {
+        tbody.innerHTML = '<div style="text-align:center; padding:20px; color:#ff0000; grid-column:1 / -1;">NO FIGHTERS IN THE ARENA YET</div>';
+        return;
+      }
+      leaderboard.forEach((player, index) => {
+        const rank = index + 1;
+        const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
+        const row = document.createElement('div');
+        row.className = 'player-row';
+        row.innerHTML = `
+          <div class="rank ${rankClass}">#${rank}</div>
+          <div class="player-name">${player.name}</div>
+          <div class="score">${player.kills}</div>
+          <div class="score">${player.deaths}</div>
+          <div class="augmentation">${player.augmentations}</div>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    let currentPlayer = null;
+    let selectedCharacter = null;
+    const characterCards = document.querySelectorAll('.character-card');
+
+    characterCards.forEach(card => {
+      card.addEventListener('click', () => {
+        if (currentPlayer) return;
+        characterCards.forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedCharacter = { name: card.dataset.character, weapon: card.dataset.weapon };
+        updateRegisterButton();
+      });
+    });
+
+    function updateRegisterButton() {
+      const btn = document.getElementById('registerBtn');
+      if (selectedCharacter && !currentPlayer) {
+        btn.disabled = false;
+        btn.classList.add('ready');
+        btn.textContent = `ENTER ARENA AS ${selectedCharacter.name}`;
+      } else if (currentPlayer) {
+        btn.disabled = true;
+        btn.classList.remove('ready');
+        btn.textContent = 'FIGHTER REGISTERED - READY TO FIGHT!';
+      } else {
+        btn.disabled = true;
+        btn.classList.remove('ready');
+        btn.textContent = 'SELECT YOUR FIGHTER TO BEGIN';
+      }
+    }
+
+    function registerFighter() {
+      if (!selectedCharacter || currentPlayer) return;
+      socket.emit('register-player', { name: selectedCharacter.name, augmentations: selectedCharacter.weapon });
+      updateRegisterButton();
+    }
+
+    socket.on('player-registered', (player) => {
+      currentPlayer = player;
+      document.getElementById('playerInfo').classList.remove('hidden');
+      document.getElementById('registeredCharacter').textContent = player.name;
+      characterCards.forEach(card => {
+        card.style.cursor = 'not-allowed';
+        card.style.opacity = '0.5';
+      });
+      setTimeout(() => document.getElementById('resetBtn').classList.remove('hidden'), 2000);
+    });
+
+    socket.on('registration-failed', (data) => {
+      alert(data.reason);
+      characterCards.forEach(card => { card.style.cursor='pointer'; card.style.opacity='1'; });
+      selectedCharacter = null; updateRegisterButton();
+    });
+
+    socket.on('tournament-ready', (data) => {
+      document.getElementById('tournamentStatus').classList.remove('hidden');
+      document.getElementById('waitingStatus').classList.add('hidden');
+      document.getElementById('matchupText').textContent = `${data.player1.name} VS ${data.player2.name}`;
+    });
+
+    window.gameSocket = socket;
+    window.updateGameScoreDelta = (delta) => {
+      socket.emit('update-score', delta);
+    };
+  </script>
+
+  <script src="sketch.js"></script>
+</body>
+</html>

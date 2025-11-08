@@ -1,0 +1,198 @@
+/* =========================================================
+   POST-HUMAN KOMBAT CSS
+   working out spacing + color consistency here
+   ========================================================= */
+
+/* basic reset */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* global typography + layout */
+body {
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  background: #000;
+  color: #9d4edd;
+  min-height: 100vh;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+/* container for entire layout */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ===== header ===== */
+header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  border: 3px solid #ff0000;
+  background: rgba(0,0,0,.8);
+}
+
+/* glitch animation for title */
+h1 {
+  font-size: 2em;
+  letter-spacing: 3px;
+  margin-bottom: 15px;
+  color: #9d4edd;
+  animation: glitch 3s infinite;
+}
+
+@keyframes glitch {
+  0%, 90%, 100% { transform: translate(0); text-shadow: 0 0 5px #9d4edd; }
+  91% { transform: translate(-2px, 2px); text-shadow: 2px 0 #ff0000, -2px 0 #00ffff; }
+  93% { transform: translate(2px, -2px); text-shadow: -2px 0 #ff0000, 2px 0 #00ffff; }
+  95% { transform: translate(-2px, -2px); }
+}
+
+.subtitle { color:#ff0000; font-size:.7em; letter-spacing:2px; }
+
+/* ===== leaderboard ===== */
+.leaderboard {
+  background: transparent;
+  border: 3px solid #9d4edd;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.leaderboard-header, .player-row {
+  display: grid;
+  grid-template-columns: 60px 2fr 1fr 1fr 2fr;
+  gap: 15px;
+  padding: 10px;
+  border: 2px solid #9d4edd;
+  margin-bottom: 10px;
+}
+
+.leaderboard-header {
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: .6em;
+}
+
+/* row hover state gives light glow */
+.player-row { transition: .3s ease; font-size: .65em; }
+.player-row:hover { background: rgba(157,78,221,.1); }
+
+.rank { font-size: 1.8em; font-weight: bold; text-align:center; }
+.rank-1 { color:#ffd700; } .rank-2 { color:#c0c0c0; } .rank-3 { color:#cd7f32; }
+
+.player-name { font-weight: bold; font-size:1.1em; }
+.score { text-align:center; font-size:1.2em; font-weight:bold; color:#ff0000; }
+.augmentation { color:#00ffff; font-size:.9em; }
+
+/* ===== fighter selection ===== */
+.fighter-selection {
+  margin-top:20px;
+  padding:20px;
+  background: rgba(0,0,0,.8);
+  border:3px solid #ff0000;
+}
+
+/* note: using grid here so cards wrap neatly */
+.character-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap:15px;
+  margin-bottom:20px;
+}
+
+.character-card {
+  background: rgba(0,0,0,.9);
+  border:3px solid #9d4edd;
+  padding:15px;
+  cursor:pointer;
+  transition:.2s ease;
+}
+
+.character-card:hover { background: rgba(157,78,221,.1); transform: scale(1.02); }
+.character-card.selected { background: rgba(157,78,221,.2); border-color:#c77dff; }
+
+.character-name { font-size:.9em; font-weight:bold; margin-bottom:8px; text-align:center; color:#9d4edd; }
+.character-weapon { font-size:.6em; color:#ff0000; text-align:center; margin-bottom:10px; }
+.character-desc { font-size:.5em; color:#00ffff; text-align:center; line-height:1.6; }
+
+/* ===== buttons ===== */
+button {
+  background: rgba(0,0,0,.9);
+  border:3px solid #ff0000;
+  color:#ff0000;
+  padding:15px;
+  font-family:'Press Start 2P', monospace;
+  font-size:.7em;
+  width:100%;
+  cursor:pointer;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  transition:.2s ease;
+}
+
+button:hover:not(:disabled){ background: rgba(255,0,0,.2); }
+button:disabled { opacity:.5; cursor:not-allowed; border-color:#666; color:#666; }
+button.ready { border-color:#9d4edd; color:#9d4edd; }
+
+.btn-reset { margin-top:15px; border-color:#ff0000; color:#ff0000; }
+
+/* ===== alerts + statuses ===== */
+.fatality-alert {
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform: translate(-50%,-50%);
+  background:#ff0000;
+  color:#000;
+  padding:40px;
+  border:5px solid #000;
+  font-size:1.5em;
+  font-weight:bold;
+  text-align:center;
+  z-index:1001;
+  display:none;
+}
+
+.connection-status { display:none; }
+
+/* hidden utility class */
+.hidden { display:none; }
+
+/* color + size variants for status panels */
+.player-info {
+  background: rgba(157,78,221,.1);
+  border:3px solid #9d4edd;
+  padding:15px;
+  margin-bottom:20px;
+  text-align:center;
+}
+.player-info .status { font-size:.7em; color:#00ffff; margin-bottom:8px; }
+.player-info .character-display { font-size:1.2em; color:#9d4edd; font-weight:bold; }
+
+.player-info--tournament { background: rgba(255,0,0,.1); border-color:#ff0000; }
+.player-info--waiting { background: rgba(255,255,0,.1); border-color:#ffff00; }
+
+.status--alert { color:#ff0000; }
+.status--ok { color:#00ff00; margin-top:10px; }
+.status--info { color:#00ffff; margin-top:10px; }
+.status--warn { color:#ffff00; }
+.status--xl { font-size:2em; }
+.status--lg { font-size:1.5em; }
+
+/* ===== arena ===== */
+#arena { margin:24px 0; }
+.arena-title { color:#ff3b3b; letter-spacing:2px; text-align:center; }
+#game { margin-top:12px; }
+.arena-help { opacity:.7; margin-top:8px; text-align:center; }
+
+/* responsive tweaks */
+@media (max-width: 768px) {
+  h1 { font-size:1.2em; }
+  .leaderboard-header, .player-row {
+    grid-template-columns: 40px 1fr 50px 50px;
+    font-size:.5em;
+  }
+  .leaderboard-header > *:nth-child(5),
+  .player-row > *:nth-child(5) { display:none; }
+  .character-grid { grid-template-columns: 1fr; }
+}
